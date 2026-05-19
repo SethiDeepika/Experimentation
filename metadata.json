@@ -1,0 +1,8 @@
+{
+  "name": "Shadow Trends AI",
+  "description": "An autonomous AI agent network that monitors internet sources to discover hidden signals, emerging startup ideas, and subculture trend trajectories before they become mainstream.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
