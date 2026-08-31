@@ -3,11 +3,80 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <title>Data Breach Classifier</title>
+    <meta
+      name="description"
+      content="Describe a security incident and an open-source AI model, running entirely in your browser, predicts the breach type and which data-protection laws likely apply."
+    />
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <header class="site-header">
+      <div class="wrap">
+        <span class="eyebrow">Open-source AI &middot; runs in your browser</span>
+        <h1>Data Breach Classifier</h1>
+        <p class="subtitle">
+          Describe a security incident below. A small open-source language model — downloaded once and
+          run entirely on your device — predicts the breach type and flags which data-protection
+          regulations likely apply.
+        </p>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="panel input-panel">
+        <label for="incident">Incident description</label>
+        <textarea
+          id="incident"
+          rows="6"
+          placeholder="e.g. An employee's laptop containing unencrypted customer health records was stolen from a parked car overnight..."
+        ></textarea>
+
+        <div class="examples">
+          <span class="examples-label">Try an example:</span>
+          <button type="button" class="example-btn" data-example="0">Stolen laptop</button>
+          <button type="button" class="example-btn" data-example="1">Phishing email</button>
+          <button type="button" class="example-btn" data-example="2">Cloud misconfiguration</button>
+          <button type="button" class="example-btn" data-example="3">Ransomware</button>
+        </div>
+
+        <button type="button" id="classify-btn" class="primary-btn">Classify incident</button>
+        <p id="status-line" class="status-line" aria-live="polite"></p>
+      </section>
+
+      <section id="results" class="panel results-panel" hidden>
+        <div class="result-group">
+          <h2>Likely breach type</h2>
+          <div id="breach-bars" class="bars"></div>
+        </div>
+        <div class="result-group">
+          <h2>Regulations that may apply</h2>
+          <div id="statute-bars" class="bars"></div>
+        </div>
+      </section>
+
+      <section class="panel about-panel">
+        <h2>How this works</h2>
+        <p>
+          This tool uses <strong>zero-shot text classification</strong>: an open-source natural-language
+          inference model (<a href="https://huggingface.co/Xenova/nli-deberta-v3-xsmall" target="_blank" rel="noreferrer">DeBERTa-v3-xsmall, fine-tuned on MNLI</a>)
+          checks how well your incident description entails each candidate breach type and regulation,
+          without ever being trained on breach examples specifically. It runs client-side via
+          <a href="https://github.com/huggingface/transformers.js" target="_blank" rel="noreferrer">Transformers.js</a>,
+          so the model downloads once (cached by your browser) and every classification afterward happens
+          instantly, offline, and privately on your own device.
+        </p>
+        <p class="disclaimer">
+          Educational demo only — not legal advice. Classification quality reflects a small open-source
+          model and a fixed label set, not a trained breach-notification system.
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>A portfolio project by Deepika Sethi.</p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
   </body>
 </html>
-
