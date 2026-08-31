@@ -9,7 +9,11 @@ const CLASSIFIER_MODEL = "Xenova/nli-deberta-v3-xsmall";
 const EXPLAINER_MODEL = "Xenova/LaMini-Flan-T5-248M";
 
 const RELEVANCE_THRESHOLD = 0.5;
+const MIN_REGULATIONS_SHOWN = 2;
 const MAX_REGULATIONS_SHOWN = 3;
+const HYPOTHESIS_TEMPLATE = "This incident is a violation of {}.";
+
+const REFUSAL_PATTERN = /\b(i'?m sorry|i cannot|i can'?t|as an ai|i am unable|i'?m unable|i do not have enough information)\b/i;
 
 const REGULATIONS = [
   { label: "GDPR", full: "EU General Data Protection Regulation", icon: "🇪🇺", color: "#6366f1" },
@@ -88,10 +92,28 @@ async function getExplainer() {
 
 function buildPrompt(text, reg) {
   return (
-    `Explain in one specific sentence how the incident below violates ${reg.label} ` +
-    `(${reg.full}). Name what data was exposed and which obligation was broken.\n\n` +
-    `Incident: ${text}`
+    `You are a data-protection compliance assistant. Never apologize and never say you cannot answer.\n\n` +
+    `Incident: ${text}\n\n` +
+    `In exactly one sentence, state specifically how this incident violates ${reg.label} ` +
+    `(${reg.full}). Name the type of data exposed and the obligation that was broken.`
   );
+}
+
+function fallbackExplanation(reg) {
+  return (
+    `This incident appears to fall under ${reg.label} (${reg.full}), since it involves exposure of ` +
+    `personal information the regulation is designed to protect — though the model couldn't produce a ` +
+    `more specific explanation for this wording.`
+  );
+}
+
+function sanitizeExplanation(raw, reg) {
+  const text = (raw || "").trim();
+  if (!text || text.length < 15 || REFUSAL_PATTERN.test(text)) {
+    return fallbackExplanation(reg);
+  }
+  const firstSentence = text.match(/^[^.!?]*[.!?]/);
+  return firstSentence && firstSentence[0].length > 20 ? firstSentence[0].trim() : text;
 }
 
 function createRegulationCard(reg, score, index) {
@@ -152,7 +174,10 @@ async function analyze() {
     setStatus("Scanning the incident against known data-protection regulations…", true);
 
     const candidateLabels = REGULATIONS.map(candidateLabel);
-    const result = await classifier(text, candidateLabels, { multi_label: true });
+    const result = await classifier(text, candidateLabels, {
+      multi_label: true,
+      hypothesis_template: HYPOTHESIS_TEMPLATE,
+    });
 
     const byLabel = new Map(REGULATIONS.map((reg) => [candidateLabel(reg), reg]));
     const scored = result.labels.map((label, i) => ({
@@ -160,8 +185,9 @@ async function analyze() {
       score: result.scores[i],
     }));
 
-    let relevant = scored.filter((s) => s.score > RELEVANCE_THRESHOLD).slice(0, MAX_REGULATIONS_SHOWN);
-    if (relevant.length === 0) relevant = scored.slice(0, 1);
+    const aboveThreshold = scored.filter((s) => s.score > RELEVANCE_THRESHOLD);
+    const relevant = (aboveThreshold.length >= MIN_REGULATIONS_SHOWN ? aboveThreshold : scored)
+      .slice(0, MAX_REGULATIONS_SHOWN);
 
     resultsEl.hidden = false;
     const cardEls = relevant.map(({ reg, score }, i) => {
@@ -174,11 +200,15 @@ async function analyze() {
 
     for (let i = 0; i < relevant.length; i++) {
       setStatus(`Writing explanation ${i + 1} of ${relevant.length}…`, true);
-      const prompt = buildPrompt(text, relevant[i].reg);
-      const output = await explainer(prompt, { max_new_tokens: 60 });
-      const explanation =
-        (output[0]?.generated_text || "").trim() ||
-        "Could not generate a specific explanation for this regulation.";
+      const reg = relevant[i].reg;
+      const prompt = buildPrompt(text, reg);
+      const output = await explainer(prompt, {
+        max_new_tokens: 80,
+        do_sample: false,
+        repetition_penalty: 1.3,
+        no_repeat_ngram_size: 3,
+      });
+      const explanation = sanitizeExplanation(output[0]?.generated_text, reg);
 
       const p = cardEls[i].querySelector(".reg-explanation");
       p.textContent = explanation;
