@@ -3,22 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Data Breach Classifier</title>
+    <title>Regulation Breach Analyzer</title>
     <meta
       name="description"
-      content="Describe a security incident and an open-source AI model, running entirely in your browser, predicts the breach type and which data-protection laws likely apply."
+      content="Describe a security incident and open-source AI models, running entirely in your browser, explain exactly how each data-protection regulation was likely breached."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <div class="aurora" aria-hidden="true">
+      <span class="blob blob-a"></span>
+      <span class="blob blob-b"></span>
+      <span class="blob blob-c"></span>
+    </div>
+
     <header class="site-header">
       <div class="wrap">
-        <span class="eyebrow">Open-source AI &middot; runs in your browser</span>
-        <h1>Data Breach Classifier</h1>
+        <span class="eyebrow">✨ Open-source AI &middot; runs entirely in your browser</span>
+        <h1>Regulation <span class="gradient-text">Breach</span> Analyzer</h1>
         <p class="subtitle">
-          Describe a security incident below. A small open-source language model — downloaded once and
-          run entirely on your device — predicts the breach type and flags which data-protection
-          regulations likely apply.
+          Describe a security incident. Open-source AI models — downloaded once and run entirely on your
+          device — figure out which data-protection regulations were likely triggered, and explain
+          <em>specifically how</em> each one was breached.
         </p>
       </div>
     </header>
@@ -40,35 +52,49 @@
           <button type="button" class="example-btn" data-example="3">Ransomware</button>
         </div>
 
-        <button type="button" id="classify-btn" class="primary-btn">Classify incident</button>
-        <p id="status-line" class="status-line" aria-live="polite"></p>
+        <button type="button" id="analyze-btn" class="primary-btn">
+          <span>Analyze incident</span>
+        </button>
+
+        <div class="status-row">
+          <span id="spinner" class="spinner" hidden></span>
+          <p id="status-line" class="status-line" aria-live="polite"></p>
+        </div>
       </section>
 
-      <section id="results" class="panel results-panel" hidden>
-        <div class="result-group">
-          <h2>Likely breach type</h2>
-          <div id="breach-bars" class="bars"></div>
-        </div>
-        <div class="result-group">
-          <h2>Regulations that may apply</h2>
-          <div id="statute-bars" class="bars"></div>
-        </div>
+      <section id="results" class="results-panel" hidden>
+        <h2>Regulations likely breached</h2>
+        <div id="regulation-cards" class="regulation-cards"></div>
       </section>
 
       <section class="panel about-panel">
         <h2>How this works</h2>
         <p>
-          This tool uses <strong>zero-shot text classification</strong>: an open-source natural-language
-          inference model (<a href="https://huggingface.co/Xenova/nli-deberta-v3-xsmall" target="_blank" rel="noreferrer">DeBERTa-v3-xsmall, fine-tuned on MNLI</a>)
-          checks how well your incident description entails each candidate breach type and regulation,
-          without ever being trained on breach examples specifically. It runs client-side via
-          <a href="https://github.com/huggingface/transformers.js" target="_blank" rel="noreferrer">Transformers.js</a>,
-          so the model downloads once (cached by your browser) and every classification afterward happens
-          instantly, offline, and privately on your own device.
+          Two small open-source models run back to back, entirely on your device, via
+          <a href="https://github.com/huggingface/transformers.js" target="_blank" rel="noreferrer">Transformers.js</a>:
+        </p>
+        <ol>
+          <li>
+            <strong>Matching</strong> — a zero-shot classifier
+            (<a href="https://huggingface.co/Xenova/nli-deberta-v3-xsmall" target="_blank" rel="noreferrer">DeBERTa-v3-xsmall, fine-tuned on MNLI</a>)
+            scores how well your incident entails each candidate regulation, without ever being trained on
+            breach examples specifically.
+          </li>
+          <li>
+            <strong>Explaining</strong> — for every regulation that scores high enough, a small
+            instruction-tuned generative model
+            (<a href="https://huggingface.co/Xenova/LaMini-Flan-T5-248M" target="_blank" rel="noreferrer">LaMini-Flan-T5-248M</a>)
+            writes a sentence explaining, in its own words, exactly how that regulation appears to have
+            been violated.
+          </li>
+        </ol>
+        <p>
+          Both models download once (cached by your browser) and everything afterward runs instantly,
+          offline, and privately — your incident text never leaves your device.
         </p>
         <p class="disclaimer">
-          Educational demo only — not legal advice. Classification quality reflects a small open-source
-          model and a fixed label set, not a trained breach-notification system.
+          Educational demo only — not legal advice. Explanations are generated by a small open-source
+          language model and can be wrong or oversimplified.
         </p>
       </section>
     </main>
