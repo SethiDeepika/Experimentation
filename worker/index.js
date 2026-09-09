@@ -5,7 +5,7 @@
 // This file holds no secrets itself — env.GROQ_API_KEY is injected by
 // Cloudflare at runtime from the Worker's encrypted secret store.
 
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+const GROQ_MODEL = "openai/gpt-oss-120b";
 const MAX_INCIDENT_LENGTH = 4000;
 
 const SYSTEM_PROMPT = `You are a data-protection compliance analyst. Given a security incident \
