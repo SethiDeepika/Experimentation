@@ -8,10 +8,8 @@ env.useBrowserCache = true;
 const CLASSIFIER_MODEL = "Xenova/nli-deberta-v3-xsmall";
 const EXPLAINER_MODEL = "Xenova/LaMini-Flan-T5-248M";
 
-// Fill this in after deploying the Cloudflare Worker proxy (see README:
-// "Optional: deeper analysis via Groq"), e.g.:
-// "https://regulation-breach-analyzer-api.<your-subdomain>.workers.dev"
-const GROQ_PROXY_URL = "";
+// Cloudflare Worker proxy — see README: "Optional: deeper analysis via Groq".
+const GROQ_PROXY_URL = "https://regulation-breach-analyzer-api.deepika-sethi88.workers.dev";
 
 const RELEVANCE_THRESHOLD = 0.5;
 const MIN_REGULATIONS_SHOWN = 2;
