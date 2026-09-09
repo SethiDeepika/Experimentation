@@ -110,12 +110,8 @@ h3 {
   padding: 0 20px;
 }
 
-.dashboard {
-  max-width: 1360px;
-}
-
 .site-header {
-  padding: 48px 0 28px;
+  padding: 32px 0 22px;
   text-align: center;
 }
 
@@ -132,10 +128,10 @@ h3 {
 }
 
 .site-header h1 {
-  font-size: 38px;
+  font-size: 32px;
   font-weight: 800;
   letter-spacing: -0.01em;
-  margin: 0 0 14px;
+  margin: 0 0 10px;
 }
 
 .gradient-text {
@@ -160,16 +156,18 @@ h3 {
 
 /* Dashboard layout: sidebar + results, using the full width */
 .dashboard {
+  max-width: min(1800px, 96vw);
   display: grid;
-  grid-template-columns: minmax(300px, 380px) 1fr;
+  grid-template-columns: minmax(300px, 360px) 1fr;
   align-items: start;
-  gap: 28px;
-  padding-bottom: 48px;
+  gap: 24px;
+  padding-bottom: 32px;
 }
 
 @media (max-width: 900px) {
   .dashboard {
     grid-template-columns: 1fr;
+    max-width: 720px;
   }
   .input-panel {
     position: static !important;
@@ -356,6 +354,10 @@ textarea:focus {
   color: var(--muted);
 }
 
+.empty-state[hidden] {
+  display: none;
+}
+
 .empty-icon {
   font-size: 34px;
   margin-bottom: 4px;
@@ -374,15 +376,15 @@ textarea:focus {
 }
 
 .results-panel h2 {
-  font-size: 18px;
-  margin: 0 0 16px;
+  font-size: 17px;
+  margin: 0 0 12px;
   padding: 0 4px;
 }
 
 .regulation-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 16px;
 }
 
 .reg-card {
@@ -390,7 +392,7 @@ textarea:focus {
   border: 1px solid var(--border);
   border-left: 4px solid var(--accent);
   border-radius: 16px;
-  padding: 22px 24px;
+  padding: 18px 20px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--shadow);
@@ -409,8 +411,8 @@ textarea:focus {
 .reg-card-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .reg-icon {
@@ -436,7 +438,7 @@ textarea:focus {
 }
 
 .reg-section {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .reg-section:last-child {
@@ -444,16 +446,16 @@ textarea:focus {
 }
 
 .reg-section h3 {
-  font-size: 11px;
+  font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--accent);
-  margin: 0 0 5px;
+  margin: 0 0 3px;
 }
 
 .reg-section p {
   margin: 0;
-  font-size: 14px;
+  font-size: 13.5px;
   color: var(--text);
 }
 
@@ -463,13 +465,13 @@ textarea:focus {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .action-list li {
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--text);
-  padding-left: 22px;
+  padding-left: 20px;
   position: relative;
 }
 
