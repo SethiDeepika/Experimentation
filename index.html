@@ -6,7 +6,7 @@
     <title>Regulation Breach Analyzer</title>
     <meta
       name="description"
-      content="Describe a security incident and open-source AI models, running entirely in your browser, explain exactly how each data-protection regulation was likely breached."
+      content="Describe a security incident and get a full compliance breakdown, powered by Groq — which regulations apply, why, the business impact, and recommended next steps."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,22 +25,21 @@
 
     <header class="site-header">
       <div class="wrap">
-        <span class="eyebrow">✨ Open-source AI &middot; runs entirely in your browser</span>
+        <span class="eyebrow">⚡ Powered by Groq &middot; openai/gpt-oss-120b</span>
         <h1>Regulation <span class="gradient-text">Breach</span> Analyzer</h1>
         <p class="subtitle">
-          Describe a security incident. Open-source AI models — downloaded once and run entirely on your
-          device — figure out which data-protection regulations were likely triggered, and explain
-          <em>specifically how</em> each one was breached.
+          Describe a security incident. Get a full compliance breakdown: which regulations apply,
+          <em>why</em>, how it hits your firm, and what to do about it.
         </p>
       </div>
     </header>
 
-    <main class="wrap">
-      <section class="panel input-panel">
+    <main class="wrap dashboard">
+      <aside class="panel input-panel">
         <label for="incident">Incident description</label>
         <textarea
           id="incident"
-          rows="6"
+          rows="7"
           placeholder="e.g. An employee's laptop containing unencrypted customer health records was stolen from a parked car overnight..."
         ></textarea>
 
@@ -60,71 +59,32 @@
           <span id="spinner" class="spinner" hidden></span>
           <p id="status-line" class="status-line" aria-live="polite"></p>
         </div>
-      </section>
 
-      <section id="results" class="results-panel" hidden>
-        <h2>Regulations likely breached</h2>
-        <div id="regulation-cards" class="regulation-cards"></div>
-      </section>
-
-      <section class="panel deep-panel">
-        <div class="deep-panel-head">
-          <h2>Want a deeper analysis?</h2>
-          <span class="deep-badge">Powered by Groq &middot; Llama 3.3 70B</span>
+        <div class="sidebar-note">
+          <h2>How this works</h2>
+          <p>
+            Your incident text is sent to a serverless proxy that calls
+            <a href="https://groq.com" target="_blank" rel="noreferrer">Groq</a>'s free API
+            (<code>openai/gpt-oss-120b</code>), which reasons about which regulations apply, their
+            business impact, and recommended next steps. This step leaves your browser.
+          </p>
+          <p class="disclaimer">
+            Educational demo only — not legal advice. AI-generated and can be wrong or oversimplified.
+          </p>
         </div>
-        <p class="deep-note">
-          Unlike the analysis above, this step sends your incident text to a serverless proxy that
-          calls the Groq API — it leaves your browser. Use it for longer, more specific reasoning
-          than the local model can produce.
-        </p>
-        <button type="button" id="deep-analyze-btn" class="secondary-btn">Get deeper analysis</button>
-        <div class="status-row">
-          <span id="deep-spinner" class="spinner" hidden></span>
-          <p id="deep-status-line" class="status-line" aria-live="polite"></p>
+      </aside>
+
+      <section class="results-area">
+        <div id="empty-state" class="empty-state">
+          <span class="empty-icon" aria-hidden="true">🛡️</span>
+          <h2>No analysis yet</h2>
+          <p>Describe an incident on the left, or try an example, then click Analyze.</p>
         </div>
-      </section>
 
-      <section id="deep-results" class="results-panel" hidden>
-        <h2>Extended regulation analysis</h2>
-        <div id="deep-cards" class="regulation-cards"></div>
-      </section>
-
-      <section class="panel about-panel">
-        <h2>How this works</h2>
-        <p>
-          Two small open-source models run back to back, entirely on your device, via
-          <a href="https://github.com/huggingface/transformers.js" target="_blank" rel="noreferrer">Transformers.js</a>:
-        </p>
-        <ol>
-          <li>
-            <strong>Matching</strong> — a zero-shot classifier
-            (<a href="https://huggingface.co/Xenova/nli-deberta-v3-xsmall" target="_blank" rel="noreferrer">DeBERTa-v3-xsmall, fine-tuned on MNLI</a>)
-            scores how well your incident entails each candidate regulation, without ever being trained on
-            breach examples specifically.
-          </li>
-          <li>
-            <strong>Explaining</strong> — for every regulation that scores high enough, a small
-            instruction-tuned generative model
-            (<a href="https://huggingface.co/Xenova/LaMini-Flan-T5-248M" target="_blank" rel="noreferrer">LaMini-Flan-T5-248M</a>)
-            writes a sentence explaining, in its own words, exactly how that regulation appears to have
-            been violated.
-          </li>
-        </ol>
-        <p>
-          Both models download once (cached by your browser) and everything afterward runs instantly,
-          offline, and privately — your incident text never leaves your device for this default
-          analysis.
-        </p>
-        <p>
-          The optional <strong>"Get deeper analysis"</strong> button above is different: it sends your
-          incident text to a small serverless proxy, which calls Groq's free API to run a much larger
-          model (Llama 3.3 70B) for longer, more specific reasoning. That step does leave your browser
-          — use it only if you're comfortable with that.
-        </p>
-        <p class="disclaimer">
-          Educational demo only — not legal advice. Explanations are AI-generated and can be wrong or
-          oversimplified.
-        </p>
+        <div id="results" class="results-panel" hidden>
+          <h2>Regulations likely breached</h2>
+          <div id="regulation-cards" class="regulation-cards"></div>
+        </div>
       </section>
     </main>
 
