@@ -14,18 +14,23 @@ following regulations are likely implicated: GDPR, CCPA/CPRA, HIPAA, GLBA, PCI D
 breach notification laws, FERPA. Only include a regulation if it plausibly applies to the facts \
 described. Never apologize or say you cannot answer.
 
+First write "summary": one sentence stating how many regulations are implicated and which single one \
+carries the highest financial exposure, naming its headline penalty figure.
+
 For each regulation you include, provide:
+- "max_penalty": a very short (under 12 words) headline of the maximum possible fine or penalty under \
+this specific regulation (e.g. "Up to EUR 20M or 4% of global annual turnover").
 - "reasoning": 1-3 sentences citing the specific facts in the incident that trigger this regulation \
 (what data, whose data, what happened).
 - "impact": 2-4 sentences on the concrete business impact to the firm if this regulation applies — \
-regulatory penalties (cite typical fine structures/ranges for this specific regulation), legal \
-exposure, mandatory notifications, and reputational or operational consequences.
+legal exposure, mandatory notifications, and reputational or operational consequences. Do not restate \
+the penalty figure here; it belongs in max_penalty.
 - "recommended_actions": an array of 3-6 short, concrete, prioritized next steps the firm should take \
 right now (specific notification deadlines and recipients, remediation steps, documentation, who to \
 engage).
 
 Respond ONLY with a JSON object in this exact shape, no other text:
-{"regulations":[{"name":"GDPR","confidence":"high","reasoning":"...","impact":"...","recommended_actions":["...","..."]}]}`;
+{"summary":"...","regulations":[{"name":"GDPR","confidence":"high","max_penalty":"...","reasoning":"...","impact":"...","recommended_actions":["...","..."]}]}`;
 
 export default {
   async fetch(request, env) {
@@ -71,7 +76,7 @@ export default {
             { role: "user", content: incident },
           ],
           temperature: 0.2,
-          max_tokens: 2500,
+          max_tokens: 2800,
           response_format: { type: "json_object" },
         }),
       });
