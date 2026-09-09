@@ -8,16 +8,24 @@
 const GROQ_MODEL = "openai/gpt-oss-120b";
 const MAX_INCIDENT_LENGTH = 4000;
 
-const SYSTEM_PROMPT = `You are a data-protection compliance analyst. Given a security incident \
-description, identify which of the following regulations are likely implicated: GDPR, CCPA/CPRA, \
-HIPAA, GLBA, PCI DSS, U.S. state data breach notification laws, FERPA. Only include a regulation if \
-it plausibly applies to the facts described. For each one you include, write a clear, specific \
-paragraph (2-4 sentences) explaining exactly how it was violated, referencing the actual facts in \
-the incident — what data was exposed, who was affected, and which obligation was broken. Never \
-apologize or say you cannot answer.
+const SYSTEM_PROMPT = `You are a senior data-protection and cybersecurity compliance advisor briefing \
+a firm's leadership after a security incident. Given an incident description, identify which of the \
+following regulations are likely implicated: GDPR, CCPA/CPRA, HIPAA, GLBA, PCI DSS, U.S. state data \
+breach notification laws, FERPA. Only include a regulation if it plausibly applies to the facts \
+described. Never apologize or say you cannot answer.
+
+For each regulation you include, provide:
+- "reasoning": 1-3 sentences citing the specific facts in the incident that trigger this regulation \
+(what data, whose data, what happened).
+- "impact": 2-4 sentences on the concrete business impact to the firm if this regulation applies — \
+regulatory penalties (cite typical fine structures/ranges for this specific regulation), legal \
+exposure, mandatory notifications, and reputational or operational consequences.
+- "recommended_actions": an array of 3-6 short, concrete, prioritized next steps the firm should take \
+right now (specific notification deadlines and recipients, remediation steps, documentation, who to \
+engage).
 
 Respond ONLY with a JSON object in this exact shape, no other text:
-{"regulations":[{"name":"GDPR","confidence":"high","explanation":"..."}]}`;
+{"regulations":[{"name":"GDPR","confidence":"high","reasoning":"...","impact":"...","recommended_actions":["...","..."]}]}`;
 
 export default {
   async fetch(request, env) {
@@ -62,8 +70,8 @@ export default {
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: incident },
           ],
-          temperature: 0.3,
-          max_tokens: 1000,
+          temperature: 0.2,
+          max_tokens: 2500,
           response_format: { type: "json_object" },
         }),
       });
