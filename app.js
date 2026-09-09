@@ -26,6 +26,7 @@ const spinnerEl = document.getElementById("spinner");
 const statusEl = document.getElementById("status-line");
 const emptyStateEl = document.getElementById("empty-state");
 const resultsEl = document.getElementById("results");
+const summaryBannerEl = document.getElementById("summary-banner");
 const cardsEl = document.getElementById("regulation-cards");
 
 document.querySelectorAll(".example-btn").forEach((btn) => {
@@ -66,6 +67,11 @@ function createRegulationCard(item, index) {
       </div>
       <span class="confidence-badge confidence-${confidence}">${confidence}</span>
     </div>
+    ${
+      item.max_penalty
+        ? `<div class="penalty-stat"><span aria-hidden="true">⚠️</span><span>${item.max_penalty}</span></div>`
+        : ""
+    }
     <div class="reg-section">
       <h3>Why this applies</h3>
       <p>${item.reasoning || "No reasoning provided."}</p>
@@ -119,6 +125,14 @@ async function analyze() {
 
     emptyStateEl.hidden = true;
     resultsEl.hidden = false;
+
+    if (data.summary) {
+      summaryBannerEl.textContent = data.summary;
+      summaryBannerEl.hidden = false;
+    } else {
+      summaryBannerEl.hidden = true;
+    }
+
     regulations.forEach((item, i) => {
       cardsEl.appendChild(createRegulationCard(item, i));
     });
