@@ -23,12 +23,32 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: meeting-prep-generator/package-lock.json
+      - name: Install Meeting Prep Generator dependencies
+        working-directory: meeting-prep-generator
+        run: npm ci
+      - name: Build Meeting Prep Generator
+        working-directory: meeting-prep-generator
+        run: npm run build
+      - name: Assemble Pages site
+        run: |
+          mkdir -p _site
+          # Root static site (Regulation Breach Analyzer)
+          cp -r index.html app.js style.css _site/
+          # Meeting Prep Generator lives at a subpath of the same Pages site
+          mkdir -p _site/meeting-prep-generator
+          cp -r meeting-prep-generator/dist/. _site/meeting-prep-generator/
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "."
+          path: "_site"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

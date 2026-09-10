@@ -1,3 +1,17 @@
+# Portfolio projects
+
+This repo hosts two independent portfolio projects, both deployed to GitHub
+Pages by the same workflow (`.github/workflows/deploy.yml`):
+
+- **Regulation Breach Analyzer** (this project, documented below) — served
+  at the repo root: `https://sethideepika.github.io/experimentation/`
+- **[Meeting Prep Generator](meeting-prep-generator/)** — a React/Vite app
+  in `meeting-prep-generator/`, served at
+  `https://sethideepika.github.io/experimentation/meeting-prep-generator/`.
+  See its own [README](meeting-prep-generator/README.md) for details.
+
+---
+
 # Regulation Breach Analyzer
 
 A small interactive demo: describe a security incident and get a full compliance breakdown —
@@ -71,8 +85,10 @@ require an HTTP server.)
 
 ## Deploy for free (GitHub Pages)
 
-This repo includes `.github/workflows/deploy.yml`, which deploys the site to GitHub Pages
-automatically on every push to `main`.
+This repo includes `.github/workflows/deploy.yml`, which builds
+[Meeting Prep Generator](meeting-prep-generator/) and publishes it together
+with this project's static files to GitHub Pages, automatically on every
+push to `main`.
 
 One-time setup (only needs to be done once, by a repo admin):
 
