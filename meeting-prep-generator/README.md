@@ -45,15 +45,15 @@ npm run preview
 ### Where this app is deployed
 
 This app lives in the `meeting-prep-generator/` folder of the
-`experimentation` repo, alongside another portfolio project at the repo
-root. `vite.config.js` sets:
+`Experimentation` repo, alongside another portfolio project
+(`regulation-breach-analyzer/`) at the repo root. `vite.config.js` sets:
 
 ```js
-base: "/experimentation/meeting-prep-generator/"
+base: "/Experimentation/meeting-prep-generator/"
 ```
 
 so that built asset URLs resolve correctly when served at
-`https://sethideepika.github.io/experimentation/meeting-prep-generator/`.
+`https://sethideepika.github.io/Experimentation/meeting-prep-generator/`.
 
 The repo's `.github/workflows/deploy.yml` handles this automatically on
 every push to `main`: it builds this app and copies the output into a

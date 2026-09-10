@@ -38,8 +38,8 @@ jobs:
       - name: Assemble Pages site
         run: |
           mkdir -p _site
-          # Root static site (Regulation Breach Analyzer)
-          cp -r index.html app.js style.css _site/
+          # Regulation Breach Analyzer (plain static site) serves as the site root
+          cp -r regulation-breach-analyzer/. _site/
           # Meeting Prep Generator lives at a subpath of the same Pages site
           mkdir -p _site/meeting-prep-generator
           cp -r meeting-prep-generator/dist/. _site/meeting-prep-generator/
