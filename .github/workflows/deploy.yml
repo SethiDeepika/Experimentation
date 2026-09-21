@@ -38,9 +38,13 @@ jobs:
       - name: Assemble Pages site
         run: |
           mkdir -p _site
-          # Regulation Breach Analyzer (plain static site) serves as the site root
-          cp -r regulation-breach-analyzer/. _site/
-          # Meeting Prep Generator lives at a subpath of the same Pages site
+          # Landing page (resume + project links) serves as the site root
+          cp index.html style.css _site/
+          cp -r assets _site/assets
+          # Regulation Breach Analyzer and Meeting Prep Generator each live at
+          # their own subpath of the same Pages site
+          mkdir -p _site/regulation-breach-analyzer
+          cp -r regulation-breach-analyzer/. _site/regulation-breach-analyzer/
           mkdir -p _site/meeting-prep-generator
           cp -r meeting-prep-generator/dist/. _site/meeting-prep-generator/
       - name: Setup Pages
