@@ -12,17 +12,22 @@ Personal site and a collection of small projects and demos.
 - [`meeting-prep-generator/`](./meeting-prep-generator) — a tailored meeting-preparation checklist
   tool for Product Managers (React + Vite + Tailwind + React Router). Live at
   https://sethideepika.github.io/Experimentation/meeting-prep-generator/.
+- [`polymarket-insights/`](./polymarket-insights) — live trending Polymarket markets with analysis,
+  a personal feed for followed topics, and a read-only view of a wallet's positions and trades
+  (React + Vite + Tailwind). Live at
+  https://sethideepika.github.io/Experimentation/polymarket-insights/.
 
 ## Home page
 
 Plain static HTML/CSS, no build step. `.github/workflows/deploy.yml` builds Meeting Prep
-Generator, then assembles the deployed site as:
+Generator and Polymarket Insights, then assembles the deployed site as:
 
 ```
 _site/
 ├── index.html, style.css, assets/     ← this home page (site root)
 ├── regulation-breach-analyzer/        ← copied as-is (no build step)
-└── meeting-prep-generator/            ← built output (npm run build)
+├── meeting-prep-generator/            ← built output (npm run build)
+└── polymarket-insights/               ← built output (npm run build)
 ```
 
 `assets/DeepikaSethi_Resume.pdf` is a public-facing copy of the résumé with phone number and
