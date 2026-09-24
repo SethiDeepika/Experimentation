@@ -15,10 +15,11 @@ export function summarize(events) {
 }
 
 /** 24h volume per tag. An event counts toward every topic tag it carries. */
-export function volumeByTag(events, topN = 8) {
+export function volumeByTag(events, topN = 8, onlySlugs = null) {
   const byTag = new Map();
   for (const e of events) {
     for (const t of e.tags.filter(isTopicTag)) {
+      if (onlySlugs && !onlySlugs.includes(t.slug)) continue;
       const cur = byTag.get(t.slug) || { ...t, volume24hr: 0, events: 0 };
       cur.volume24hr += e.volume24hr;
       cur.events += 1;

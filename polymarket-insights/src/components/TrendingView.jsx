@@ -4,7 +4,7 @@ import EventCard from "./EventCard.jsx";
 import Insights from "./Insights.jsx";
 import { Section, Skeleton, SourceBar } from "./ui.jsx";
 
-export default function TrendingView({ feed }) {
+export default function TrendingView({ feed, onLoadMore }) {
   const [tag, setTag] = useState("all");
   const { events, loading, source } = feed;
 
@@ -21,7 +21,9 @@ export default function TrendingView({ feed }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Trending markets</h1>
-          <p className="text-sm text-ink-500">Open Polymarket events ranked by 24h trading volume.</p>
+          <p className="text-sm text-ink-500">
+            Every open Polymarket event, ranked by 24h trading volume. Load more to go deeper.
+          </p>
         </div>
         <SourceBar {...feed} onRefresh={feed.refresh} />
       </div>
@@ -33,7 +35,9 @@ export default function TrendingView({ feed }) {
           <Insights events={events} />
           <Section
             title="Top events"
-            subtitle={`${shown.length} event${shown.length === 1 ? "" : "s"}`}
+            subtitle={`${shown.length} of ${events.length} loaded event${events.length === 1 ? "" : "s"}${
+              tag === "all" ? "" : " match this topic"
+            }`}
             action={
               <div className="flex flex-wrap gap-1.5">
                 {[{ slug: "all", label: "All" }, ...topTags].map((t) => (
@@ -53,9 +57,20 @@ export default function TrendingView({ feed }) {
             }
           >
             <div className={`grid gap-3 sm:grid-cols-2 xl:grid-cols-3 ${loading ? "opacity-70" : ""}`}>
-              {shown.slice(0, 30).map((e, i) => (
+              {shown.map((e, i) => (
                 <EventCard key={e.id} event={e} rank={i + 1} />
               ))}
+            </div>
+            <div className="mt-5 flex flex-col items-center gap-1">
+              {feed.hasMore ? (
+                <button className="btn-ghost" onClick={onLoadMore} disabled={loading}>
+                  {loading ? "Loading…" : "Load 100 more events"}
+                </button>
+              ) : (
+                source === "live" && (
+                  <p className="text-sm text-ink-500">That's every open event on Polymarket.</p>
+                )
+              )}
             </div>
           </Section>
         </>

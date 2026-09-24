@@ -11,9 +11,9 @@ import MarketList from "./MarketList.jsx";
 import { BarList, Section, StatTile } from "./ui.jsx";
 
 /** KPI row, key takeaways, topic breakdown and market lists for a set of events. */
-export default function Insights({ events, byTagTitle = "24h volume by topic" }) {
+export default function Insights({ events, byTagTitle = "24h volume by topic", onlyTags = null }) {
   const s = summarize(events);
-  const tags = volumeByTag(events);
+  const tags = volumeByTag(events, onlyTags ? onlyTags.length : 8, onlyTags);
   const lines = headlines(events);
 
   return (
