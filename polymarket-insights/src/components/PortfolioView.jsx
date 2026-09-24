@@ -4,6 +4,7 @@ import { pct, timeAgo, usd } from "../lib/format.js";
 import { portfolioStats } from "../lib/insights.js";
 import { fetchUsAccount, isValidSecret, KEY_ID_RE } from "../lib/polymarketUs.js";
 import { REFRESH_MS } from "../lib/useLiveEvents.js";
+import BuildersGuide from "./BuildersGuide.jsx";
 import { BarList, Empty, Section, Skeleton, SourceNote, StatTile } from "./ui.jsx";
 
 export const DEMO_CREDS = { demo: true };
@@ -158,6 +159,7 @@ export default function PortfolioView({ creds, onConnect, onDisconnect }) {
       <div className="mx-auto max-w-2xl space-y-5">
         {header}
         <KeysForm onConnect={onConnect} />
+        <BuildersGuide />
       </div>
     );
   }
@@ -253,6 +255,8 @@ export default function PortfolioView({ creds, onConnect, onDisconnect }) {
           </Section>
         </>
       )}
+
+      <BuildersGuide />
     </div>
   );
 }
