@@ -123,3 +123,13 @@ export function SourceBar({ source, error, updatedAt, onRefresh, loading }) {
     </div>
   );
 }
+
+/** Small "where this data comes from" note. */
+export function SourceNote({ children, className = "" }) {
+  return (
+    <p className={`inline-flex items-start gap-1.5 rounded-lg bg-brand-50 px-2.5 py-1 text-xs text-brand-900 ${className}`}>
+      <span aria-hidden="true">ⓘ</span>
+      <span>{children}</span>
+    </p>
+  );
+}

@@ -12,7 +12,7 @@ const TABS = [
   { id: "interests", label: "My Interests" },
   { id: "portfolio", label: "My Trades" },
 ];
-const WALLET_KEY = "pm-insights:wallet";
+const OLD_WALLET_KEY = "pm-insights:wallet";
 const tabFromHash = () => {
   const id = window.location.hash.replace("#", "");
   return TABS.some((t) => t.id === id) ? id : "trending";
@@ -21,12 +21,10 @@ const tabFromHash = () => {
 export default function App() {
   const [tab, setTab] = useState(tabFromHash);
   const [interests, setInterestsState] = useState(() => load("pm-insights:interests", []));
-  // Shared by My Trades and My Interests (which shows your positions under followed tags).
-  const [wallet, setWallet] = useState(() => load(WALLET_KEY, null));
-  const connectWallet = (address, remember) => {
-    save(WALLET_KEY, remember ? address : null);
-    setWallet(address);
-  };
+  // Polymarket US API keys, shared by My Trades and My Interests (which shows your
+  // positions under followed tags). Held in memory only — never persisted.
+  const [usCreds, setUsCreds] = useState(null);
+  useEffect(() => save(OLD_WALLET_KEY, null), []); // drop the address older versions stored
 
   useEffect(() => {
     const onHash = () => setTab(tabFromHash());
@@ -84,15 +82,15 @@ export default function App() {
             interests={interests}
             setInterests={setInterests}
             trendingEvents={trending.events}
-            wallet={wallet}
+            usCreds={usCreds}
           />
         )}
-        {tab === "portfolio" && <PortfolioView wallet={wallet} onConnect={connectWallet} onDisconnect={() => connectWallet(null, false)} />}
+        {tab === "portfolio" && <PortfolioView creds={usCreds} onConnect={setUsCreds} onDisconnect={() => setUsCreds(null)} />}
       </main>
 
       <footer className="mx-auto max-w-7xl px-4 pb-8 text-xs text-ink-500">
-        Data from Polymarket's public Gamma and Data APIs, refreshed every minute. Not affiliated with
-        Polymarket. Prices are implied probabilities, not advice. ·{" "}
+        Trending and My Interests: market data from polymarket.com (Gamma API). My Trades: your account
+        data from polymarket.us (Polymarket US API). Refreshed every minute. Not affiliated with Polymarket. Prices are implied probabilities, not advice. ·{" "}
         <a className="underline" href="../">
           More projects
         </a>

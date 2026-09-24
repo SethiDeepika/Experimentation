@@ -11,26 +11,38 @@ A front-end over Polymarket's public APIs with three views:
   same analysis on that feed, lists all their open markets in a searchable, sortable table, and —
   if a wallet is connected — shows your open positions that fall under those topics.
   Followed topics are saved in `localStorage`.
-- **My Trades** — enter your Polymarket username, profile link or wallet address to see open positions, value, unrealised
-  P&L, win rate, concentration and recent activity. A demo wallet is available.
+- **My Trades** — your **Polymarket US** (polymarket.us) account: open positions, open orders,
+  cash / buying power, unrealised P&L, concentration and recent activity. My Interests also shows
+  which of those positions fall under your followed topics. A demo account is available.
 
-## Why only a username / wallet address?
+Trending and My Interests use **polymarket.com** market data; My Trades uses **polymarket.us**
+account data. The app says so on each tab.
 
-Polymarket positions and trades are public on-chain, so the read-only
-[Data API](https://data-api.polymarket.com) needs nothing but the address. A username is
-resolved to its public wallet address through Gamma's `public-search` profile search. The app never asks for a
-password, private key, seed phrase or CLOB API secret, and warns if something that looks like a
-key is pasted. Seeing *open limit orders* would require CLOB L2 API credentials with request
-signing, which should not be entered into a static web page, so that's deliberately out of scope.
+## Polymarket US API keys
+
+Polymarket US accounts are regular KYC'd exchange accounts, not public on-chain wallets, so account
+data needs the user's own API key from [polymarket.us/developer](https://polymarket.us/developer)
+(a Key ID and a base64 Ed25519 Secret Key).
+
+- Each request is signed **in the browser** (Ed25519 over `timestamp + METHOD + path`, sent as
+  `X-PM-Access-Key` / `X-PM-Timestamp` / `X-PM-Signature`), matching Polymarket's official
+  [`polymarket-us`](https://www.npmjs.com/package/polymarket-us) SDK. The secret itself is never
+  sent anywhere.
+- Keys live in React state only — never in `localStorage`/`sessionStorage` — and are dropped on
+  reload or Disconnect.
+- The page only calls read endpoints, but a Polymarket US key can trade, so the UI warns users to
+  treat it like a password and revoke it when done.
 
 ## APIs used
 
 | Endpoint | Used for |
 |---|---|
 | `gamma-api.polymarket.com/events?active=true&closed=false&order=volume24hr&limit=100&offset=…&tag_slug=…` | trending + per-topic feeds (paged) |
-| `gamma-api.polymarket.com/public-search?q=…&search_profiles=true` | username → wallet address |
-| `data-api.polymarket.com/positions?user=…` | open positions |
-| `data-api.polymarket.com/activity?user=…` | recent trades |
+| `api.polymarket.us/v1/portfolio/positions` (signed) | open positions |
+| `api.polymarket.us/v1/orders/open` (signed) | open orders |
+| `api.polymarket.us/v1/account/balances` (signed) | cash and buying power |
+| `api.polymarket.us/v1/portfolio/activities` (signed) | recent activity |
+| `gateway.polymarket.us/v1/events?slug=…` | tags of your positions' events (for My Interests) |
 
 If the Gamma API can't be reached (offline, blocked network, CORS), the Trending and Interests
 views fall back to clearly labelled sample data so the analysis still renders.
@@ -39,9 +51,10 @@ views fall back to clearly labelled sample data so the analysis still renders.
 
 ```bash
 npm install
-npm run dev     # API calls go through the Vite proxy (/gamma, /data), so no CORS issues
+npm run dev     # API calls go through the Vite proxy (/gamma, /pmus-api, /pmus-gateway), so no CORS issues
 npm run build   # production build calls the APIs directly
 ```
 
-Code map: `src/lib/api.js` (fetch + normalise), `src/lib/insights.js` (all analysis, pure
+Code map: `src/lib/api.js` (polymarket.com fetch + normalise), `src/lib/polymarketUs.js`
+(Polymarket US signed client), `src/lib/insights.js` (all analysis, pure
 functions), `src/lib/useLiveEvents.js` (polling + fallback), `src/components/` (views).

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { isTopicTag } from "../lib/insights.js";
 import EventCard from "./EventCard.jsx";
 import Insights from "./Insights.jsx";
-import { Section, Skeleton, SourceBar } from "./ui.jsx";
+import { Section, Skeleton, SourceBar, SourceNote } from "./ui.jsx";
 
 export default function TrendingView({ feed, onLoadMore }) {
   const [tag, setTag] = useState("all");
@@ -24,6 +24,10 @@ export default function TrendingView({ feed, onLoadMore }) {
           <p className="text-sm text-ink-500">
             Every open Polymarket event, ranked by 24h trading volume. Load more to go deeper.
           </p>
+          <SourceNote className="mt-2">
+            Market data from <strong>polymarket.com</strong> (international). Some markets may not be
+            tradable on polymarket.us.
+          </SourceNote>
         </div>
         <SourceBar {...feed} onRefresh={feed.refresh} />
       </div>

@@ -104,46 +104,72 @@ const RAW = [
 export const demoEvents = () =>
   RAW.map(normalizeEvent).sort((a, b) => b.volume24hr - a.volume24hr);
 
-export const DEMO_WALLET = "0x0000000000000000000000000000000000de0000";
-
-export const demoPositions = () => [
-  { id: "p1", title: "Fed decision in October? — No change", slug: "demo-event-1", outcome: "Yes", size: 1800, avgPrice: 0.58, curPrice: 0.71 },
-  { id: "p2", title: "Bitcoin above $150k by Dec 31?", slug: "demo-event-2", outcome: "No", size: 1200, avgPrice: 0.61, curPrice: 0.66 },
-  { id: "p3", title: "Which company has the best AI model end of October? — OpenAI", slug: "demo-event-4", outcome: "Yes", size: 900, avgPrice: 0.44, curPrice: 0.31 },
-  { id: "p4", title: "Government shutdown by Oct 1?", slug: "demo-event-11", outcome: "Yes", size: 650, avgPrice: 0.38, curPrice: 0.49 },
-  { id: "p5", title: "Top Spotify artist this week — Bad Bunny", slug: "demo-event-10", outcome: "Yes", size: 400, avgPrice: 0.3, curPrice: 0.22 },
-].map((p) => {
-  const initialValue = p.size * p.avgPrice;
-  const currentValue = p.size * p.curPrice;
-  return {
-    ...p,
-    icon: "",
-    initialValue,
-    currentValue,
-    cashPnl: currentValue - initialValue,
-    percentPnl: ((currentValue - initialValue) / initialValue) * 100,
-    redeemable: false,
-    endDate: inDays(20),
-  };
-});
-
-export const demoActivity = () =>
-  [
-    ["BUY", "Government shutdown by Oct 1?", "Yes", 0.38, 650, 0.2],
-    ["BUY", "Fed decision in October? — No change", "Yes", 0.62, 600, 1.5],
-    ["SELL", "Ethereum above $5k on Friday?", "Yes", 0.55, 300, 2.1],
-    ["BUY", "Top Spotify artist this week — Bad Bunny", "Yes", 0.3, 400, 3],
-    ["BUY", "Which company has the best AI model end of October? — OpenAI", "Yes", 0.44, 900, 6],
-    ["BUY", "Bitcoin above $150k by Dec 31?", "No", 0.61, 1200, 9],
-  ].map(([side, title, outcome, price, size, daysAgo], i) => ({
-    id: `a${i}`,
-    type: "TRADE",
-    side,
+// A sample Polymarket US account, already in the shape fetchUsAccount() returns.
+export function demoUsAccount() {
+  const positions = [
+    ["Fed decision in October? — No change", "demo-event-1", "Long · Yes", 1800, 0.58, 0.71],
+    ["Bitcoin above $150k by Dec 31?", "demo-event-2", "Short · No", 1200, 0.61, 0.66],
+    ["Best AI model end of October — OpenAI", "demo-event-4", "Long · Yes", 900, 0.44, 0.31],
+    ["Government shutdown by Oct 1?", "demo-event-11", "Long · Yes", 650, 0.38, 0.49],
+    ["Top Spotify artist this week — Bad Bunny", "demo-event-10", "Long · Yes", 400, 0.3, 0.22],
+  ].map(([title, eventSlug, outcome, size, avgPrice, curPrice], i) => {
+    const initialValue = size * avgPrice;
+    const currentValue = size * curPrice;
+    return {
+      id: `demo-${i}`,
+      marketSlug: `demo-market-${i}`,
+      eventSlug,
+      title,
+      outcome,
+      size,
+      avgPrice,
+      curPrice,
+      initialValue,
+      currentValue,
+      cashPnl: currentValue - initialValue,
+      percentPnl: ((currentValue - initialValue) / initialValue) * 100,
+      realized: 0,
+      expired: false,
+    };
+  });
+  const orders = [
+    ["Ethereum above $5k on Friday?", "Buy Yes", true, 0.52, 500, 120, 1],
+    ["NYC Mayoral race — Candidate A", "Buy Yes", true, 0.48, 300, 0, 3],
+    ["Fed decision in October? — No change", "Sell Yes", false, 0.8, 600, 0, 20],
+  ].map(([title, action, isBuy, price, quantity, filled, hoursAgo], i) => ({
+    id: `demo-order-${i}`,
     title,
-    slug: "",
-    outcome,
+    outcome: "",
+    action,
+    isBuy,
+    type: "limit",
+    tif: "good till cancel",
+    state: filled ? "partially filled" : "new",
     price,
-    size,
-    usdcSize: price * size,
+    quantity,
+    filled,
+    remaining: quantity - filled,
+    notional: price * (quantity - filled),
+    createdAt: Date.now() - hoursAgo * 36e5,
+  }));
+  const activity = [
+    ["TRADE", "Government shutdown by Oct 1?", "650 @ 38¢", 247, 0.2],
+    ["TRADE", "Fed decision in October? — No change", "600 @ 62¢", 372, 1.5],
+    ["DEPOSIT", "Account deposit", "completed", 2000, 2],
+    ["TRADE", "Top Spotify artist this week — Bad Bunny", "400 @ 30¢", 120, 3],
+    ["RESOLVED", "Champions League: Real Madrid vs Man City", "", null, 5],
+    ["TRADE", "Bitcoin above $150k by Dec 31?", "1,200 @ 61¢", 732, 9],
+  ].map(([label, title, detail, amount, daysAgo], i) => ({
+    id: `demo-act-${i}`,
+    label,
+    title,
+    detail,
+    amount,
     timestamp: Date.now() - daysAgo * day,
   }));
+  return { positions, orders, activity, balance: { cash: 1840.5, buyingPower: 1606.5, inOpenOrders: 234 } };
+}
+
+/** Tags for the demo account's events, mirroring fetchUsEventTags(). */
+export const demoUsEventTags = () =>
+  Object.fromEntries(RAW.map((e) => [`demo-event-${e.id}`, e.tags.map((t) => t.slug)]));

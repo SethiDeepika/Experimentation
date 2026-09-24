@@ -13,7 +13,7 @@ Personal site and a collection of small projects and demos.
   tool for Product Managers (React + Vite + Tailwind + React Router). Live at
   https://sethideepika.github.io/Experimentation/meeting-prep-generator/.
 - [`polymarket-insights/`](./polymarket-insights) — live trending Polymarket markets with analysis,
-  a personal feed for followed topics, and a read-only view of a wallet's positions and trades
+  a personal feed for followed topics, and a Polymarket US view of your positions and open orders
   (React + Vite + Tailwind). Live at
   https://sethideepika.github.io/Experimentation/polymarket-insights/.
 
