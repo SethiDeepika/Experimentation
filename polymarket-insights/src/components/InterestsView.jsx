@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { dedupeEvents, fetchAllEvents } from "../lib/api.js";
-import { demoEvents } from "../lib/demoData.js";
-import { shortAddress } from "../lib/format.js";
+import { demoEvents, demoUsEventTags } from "../lib/demoData.js";
+import { fetchUsEventTags } from "../lib/polymarketUs.js";
 import { tagsFromEvents } from "../lib/insights.js";
 import useLiveEvents from "../lib/useLiveEvents.js";
 import EventCard from "./EventCard.jsx";
 import Insights from "./Insights.jsx";
 import MarketsTable from "./MarketsTable.jsx";
-import { loadPositions, PositionsTable } from "./PortfolioView.jsx";
+import { loadUsAccount, PositionsTable } from "./PortfolioView.jsx";
 import TagPicker from "./TagPicker.jsx";
-import { Empty, Section, Skeleton, SourceBar } from "./ui.jsx";
+import { Empty, Section, Skeleton, SourceBar, SourceNote } from "./ui.jsx";
 
 const MAX_PER_TAG = 500;
 const CARD_STEP = 30;
@@ -24,33 +24,36 @@ async function loadInterestEvents(tags) {
   return dedupeEvents(ok.map((r) => r.value));
 }
 
-/** The connected wallet's open positions that sit in one of the given events. */
-function useMatchingPositions(wallet, events) {
-  const [positions, setPositions] = useState(null);
-  const [error, setError] = useState(null);
+/**
+ * The connected Polymarket US account's positions whose event carries one of the
+ * followed tags. Tags come from Polymarket US's own (public) events endpoint,
+ * since US and polymarket.com events are separate listings.
+ */
+function useMatchingPositions(creds, tagSlugs) {
+  const [state, setState] = useState({ positions: null, tags: {}, error: null });
   useEffect(() => {
     let live = true;
-    setPositions(null);
-    setError(null);
-    if (wallet) {
-      loadPositions(wallet)
-        .then((p) => live && setPositions(p))
-        .catch((e) => live && setError(e));
+    setState({ positions: null, tags: {}, error: null });
+    if (creds) {
+      (async () => {
+        const { positions } = await loadUsAccount(creds);
+        const slugs = [...new Set(positions.map((p) => p.eventSlug).filter(Boolean))];
+        const tags = creds.demo ? demoUsEventTags() : await fetchUsEventTags(slugs);
+        if (live) setState({ positions, tags, error: null });
+      })().catch((error) => live && setState({ positions: null, tags: {}, error }));
     }
     return () => {
       live = false;
     };
-  }, [wallet]);
+  }, [creds]);
 
-  const slugs = useMemo(() => new Set(events.map((e) => e.slug)), [events]);
-  return {
-    matching: positions && positions.filter((p) => slugs.has(p.slug)),
-    total: positions?.length ?? 0,
-    error,
-  };
+  const matching =
+    state.positions &&
+    state.positions.filter((p) => (state.tags[p.eventSlug] || []).some((t) => tagSlugs.includes(t)));
+  return { matching, total: state.positions?.length ?? 0, error: state.error };
 }
 
-export default function InterestsView({ interests, setInterests, trendingEvents, wallet }) {
+export default function InterestsView({ interests, setInterests, trendingEvents, usCreds }) {
   const key = interests.map((t) => t.slug).sort().join(",");
   const load = useCallback(
     () => (interests.length ? loadInterestEvents(interests) : Promise.resolve([])),
@@ -61,7 +64,10 @@ export default function InterestsView({ interests, setInterests, trendingEvents,
     [key] // eslint-disable-line react-hooks/exhaustive-deps
   );
   const feed = useLiveEvents(load, fallback, [load]);
-  const mine = useMatchingPositions(wallet, feed.events);
+  const mine = useMatchingPositions(
+    usCreds,
+    interests.map((t) => t.slug)
+  );
   const [cards, setCards] = useState(CARD_STEP);
   useEffect(() => setCards(CARD_STEP), [key]);
 
@@ -73,6 +79,10 @@ export default function InterestsView({ interests, setInterests, trendingEvents,
           <p className="text-sm text-ink-500">
             Follow topics to see every open market under them. Saved in this browser only.
           </p>
+          <SourceNote className="mt-2">
+            Markets come from <strong>polymarket.com</strong>. Your positions below come from{" "}
+            <strong>polymarket.us</strong>, matched to your topics by Polymarket US's own tags.
+          </SourceNote>
         </div>
         {interests.length > 0 && <SourceBar {...feed} onRefresh={feed.refresh} />}
       </div>
@@ -100,30 +110,28 @@ export default function InterestsView({ interests, setInterests, trendingEvents,
           />
 
           <Section
-            title="Your open positions in these topics"
+            title="Your Polymarket US positions in these topics"
             subtitle={
-              wallet
-                ? `Wallet ${shortAddress(wallet)}${
-                    mine.matching ? ` · ${mine.matching.length} of ${mine.total} positions match` : ""
-                  }`
+              usCreds && mine.matching
+                ? `${mine.matching.length} of ${mine.total} open positions match`
                 : undefined
             }
           >
-            {!wallet ? (
+            {!usCreds ? (
               <Empty>
                 <a href="#portfolio" className="font-medium text-brand-700 underline">
-                  Connect your wallet in My Trades
+                  Connect your Polymarket US account in My Trades
                 </a>{" "}
                 to see which of your positions fall under these topics.
               </Empty>
             ) : mine.error ? (
-              <p className="text-sm text-rose-700">Couldn't load your positions ({mine.error.message}).</p>
+              <p className="text-sm text-rose-700">Couldn't load your positions: {mine.error.message}</p>
             ) : !mine.matching ? (
               <Skeleton rows={1} />
             ) : mine.matching.length ? (
               <PositionsTable positions={mine.matching} />
             ) : (
-              <Empty>None of your open positions are in these topics.</Empty>
+              <Empty>None of your open positions are tagged with these topics.</Empty>
             )}
           </Section>
 

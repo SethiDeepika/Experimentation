@@ -1,10 +1,9 @@
-// Thin client for Polymarket's public, read-only APIs.
-//   Gamma API — markets, events and tags:        https://gamma-api.polymarket.com
-//   Data API  — a wallet's positions & activity: https://data-api.polymarket.com
-// Neither needs an API key. In dev they go through the Vite proxy (vite.config.js).
+// Thin client for polymarket.com's public, read-only Gamma API (markets, events
+// and tags): https://gamma-api.polymarket.com. No API key needed. In dev it goes
+// through the Vite proxy (vite.config.js). Account data comes from Polymarket US
+// instead — see polymarketUs.js.
 
 const GAMMA = import.meta.env.DEV ? "/gamma" : "https://gamma-api.polymarket.com";
-const DATA = import.meta.env.DEV ? "/data" : "https://data-api.polymarket.com";
 
 async function getJson(base, path, params = {}) {
   const qs = new URLSearchParams(
@@ -119,67 +118,6 @@ export async function fetchAllEvents({ tagSlug, max = 1000 }) {
     if (!page.full) break;
   }
   return dedupeEvents(lists);
-}
-
-/** A wallet's open positions (public, keyed by address). */
-export async function fetchPositions(address) {
-  const raw = await getJson(DATA, "/positions", {
-    user: address,
-    sizeThreshold: 0.1,
-    limit: 200,
-    sortBy: "CURRENT",
-    sortDirection: "DESC",
-  });
-  return (Array.isArray(raw) ? raw : []).map((p) => ({
-    id: `${p.conditionId}-${p.outcomeIndex}`,
-    title: p.title || "",
-    slug: p.eventSlug || p.slug,
-    icon: p.icon || "",
-    outcome: p.outcome || "",
-    size: num(p.size),
-    avgPrice: num(p.avgPrice),
-    curPrice: num(p.curPrice),
-    initialValue: num(p.initialValue),
-    currentValue: num(p.currentValue),
-    cashPnl: num(p.cashPnl),
-    percentPnl: num(p.percentPnl),
-    redeemable: Boolean(p.redeemable),
-    endDate: p.endDate || null,
-  }));
-}
-
-/** A wallet's recent on-chain activity (trades, redemptions, …). */
-export async function fetchActivity(address, limit = 50) {
-  const raw = await getJson(DATA, "/activity", { user: address, limit });
-  return (Array.isArray(raw) ? raw : []).map((a, i) => ({
-    id: a.transactionHash ? `${a.transactionHash}-${i}` : String(i),
-    type: a.type || "TRADE",
-    side: a.side || "",
-    title: a.title || "",
-    slug: a.eventSlug || a.slug,
-    outcome: a.outcome || "",
-    price: num(a.price),
-    size: num(a.size),
-    usdcSize: num(a.usdcSize),
-    timestamp: num(a.timestamp) * 1000,
-  }));
-}
-
-/** Polymarket profiles matching a username, via the public search endpoint. */
-export async function searchProfiles(query) {
-  const raw = await getJson(GAMMA, "/public-search", {
-    q: query,
-    search_profiles: true,
-    limit_per_type: 10,
-  });
-  return (raw?.profiles || [])
-    .map((p) => ({
-      address: p.proxyWallet || p.proxy_wallet || "",
-      name: p.name || "",
-      pseudonym: p.pseudonym || "",
-      image: p.profileImage || p.profile_image || "",
-    }))
-    .filter((p) => /^0x[a-fA-F0-9]{40}$/.test(p.address));
 }
 
 export const eventUrl = (slug) => `https://polymarket.com/event/${slug}`;
