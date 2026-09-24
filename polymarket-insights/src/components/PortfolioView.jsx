@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { eventUrl, fetchActivity, fetchPositions } from "../lib/api.js";
+import { eventUrl, fetchActivity, fetchPositions, searchProfiles } from "../lib/api.js";
 import { DEMO_WALLET, demoActivity, demoPositions } from "../lib/demoData.js";
 import { pct, shortAddress, timeAgo, usd } from "../lib/format.js";
 import { portfolioStats } from "../lib/insights.js";
@@ -10,57 +10,150 @@ import { BarList, Empty, Section, Skeleton, StatTile } from "./ui.jsx";
 export const loadPositions = (wallet) =>
   wallet === DEMO_WALLET ? Promise.resolve(demoPositions()) : fetchPositions(wallet);
 
-const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
+// An address on its own or inside a profile link (polymarket.com/profile/0x…).
+const ADDRESS_IN_TEXT = /(?:^|[^a-fA-F0-9x])(0x[a-fA-F0-9]{40})(?![a-fA-F0-9])/;
+
+function looksLikeSecret(text) {
+  return /^(0x)?[a-fA-F0-9]{64}$/.test(text) || text.split(/\s+/).length >= 12;
+}
+
+/** Turns what the user typed into an address or a username to look up. */
+function parseAccountInput(text) {
+  const t = text.trim();
+  if (!t || looksLikeSecret(t)) return null;
+  const addr = t.match(ADDRESS_IN_TEXT);
+  if (addr) return { address: addr[1] };
+  const fromUrl = t.match(/polymarket\.com\/(?:@|profile\/)([^/?#\s]+)/i);
+  const name = (fromUrl ? decodeURIComponent(fromUrl[1]) : t).replace(/^@/, "").trim();
+  return name ? { username: name } : null;
+}
+
+function ProfileMatches({ matches, query, onPick }) {
+  if (!matches.length) {
+    return (
+      <p className="text-sm text-rose-700">
+        No Polymarket profile found for “{query}”. Check the spelling, or paste your profile link instead.
+      </p>
+    );
+  }
+  return (
+    <div>
+      <p className="mb-2 text-sm font-medium">Which one is you?</p>
+      <ul className="divide-y divide-ink-100 rounded-xl border border-ink-200">
+        {matches.map((m) => (
+          <li key={m.address}>
+            <button
+              type="button"
+              onClick={() => onPick(m.address)}
+              className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-ink-50"
+            >
+              {m.image ? (
+                <img src={m.image} alt="" className="h-8 w-8 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
+                  {(m.name || m.pseudonym || "?").slice(0, 1).toUpperCase()}
+                </span>
+              )}
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold">{m.name || m.pseudonym}</span>
+                {m.name && m.pseudonym && m.pseudonym !== m.name && (
+                  <span className="block truncate text-xs text-ink-500">{m.pseudonym}</span>
+                )}
+              </span>
+              <span className="font-mono text-xs text-ink-500">{shortAddress(m.address)}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function WalletForm({ onConnect }) {
   const [value, setValue] = useState("");
   const [remember, setRemember] = useState(true);
+  const [lookup, setLookup] = useState(null); // { query, status: "loading" | "done" | "error", matches, error }
   const trimmed = value.trim();
-  const looksLikeSecret = /^(0x)?[a-fA-F0-9]{64}$/.test(trimmed) || trimmed.split(/\s+/).length >= 12;
-  const valid = ADDRESS_RE.test(trimmed);
+  const secret = looksLikeSecret(trimmed);
+  const parsed = parseAccountInput(trimmed);
+
+  const submit = async () => {
+    if (!parsed) return;
+    if (parsed.address) return onConnect(parsed.address, remember);
+    const query = parsed.username;
+    setLookup({ query, status: "loading" });
+    try {
+      const found = await searchProfiles(query);
+      // Put exact username matches first.
+      const q = query.toLowerCase();
+      const exact = (m) => [m.name, m.pseudonym].some((n) => n.toLowerCase() === q);
+      const matches = [...found.filter(exact), ...found.filter((m) => !exact(m))];
+      if (matches.length && exact(matches[0]) && !(matches[1] && exact(matches[1]))) {
+        return onConnect(matches[0].address, remember);
+      }
+      setLookup({ query, status: "done", matches });
+    } catch (error) {
+      setLookup({ query, status: "error", error });
+    }
+  };
 
   return (
-    <Section title="Connect your Polymarket account" subtitle="Read-only — we only need your public wallet address">
+    <Section title="Connect your Polymarket account" subtitle="Read-only — no keys, no passwords">
       <form
         className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
-          if (valid) onConnect(trimmed, remember);
+          submit();
         }}
       >
         <div>
           <label htmlFor="wallet" className="mb-1 block text-sm font-medium">
-            Polymarket wallet address
+            Polymarket username, profile link or wallet address
           </label>
           <input
             id="wallet"
             value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="0x…"
+            onChange={(e) => {
+              setValue(e.target.value);
+              setLookup(null);
+            }}
+            placeholder="yourname  ·  polymarket.com/@yourname  ·  0x…"
             autoComplete="off"
             spellCheck="false"
-            className="w-full rounded-xl border border-ink-200 px-3 py-2 font-mono text-sm outline-none focus:border-brand-400"
+            className="w-full rounded-xl border border-ink-200 px-3 py-2 text-sm outline-none focus:border-brand-400"
           />
           <p className="mt-1 text-xs text-ink-500">
-            On polymarket.com open your profile → the address under your name (starts with 0x). Your
-            positions and trades are public on-chain, so this is all we need.
+            Easiest: type the username shown on your Polymarket profile. We look up its public wallet
+            address for you. Positions and trades are public on-chain, so that's all we need.
           </p>
-          {looksLikeSecret && (
+          {secret && (
             <p className="mt-2 rounded-lg bg-rose-50 p-2 text-sm font-medium text-rose-800">
               That looks like a private key or seed phrase. Never paste those anywhere — clear this field.
             </p>
           )}
-          {trimmed && !valid && !looksLikeSecret && (
-            <p className="mt-1 text-sm text-rose-700">Enter a 42-character address starting with 0x.</p>
-          )}
         </div>
+
+        {lookup?.status === "done" && (
+          <ProfileMatches matches={lookup.matches} query={lookup.query} onPick={(a) => onConnect(a, remember)} />
+        )}
+        {lookup?.status === "error" && (
+          <p className="text-sm text-rose-700">
+            Couldn't search Polymarket profiles right now ({lookup.error.message}). Try again, or paste
+            your 0x wallet address instead.
+          </p>
+        )}
+
         <label className="flex items-center gap-2 text-sm text-ink-700">
           <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-          Remember this address in this browser
+          Remember my account in this browser
         </label>
         <div className="flex flex-wrap gap-2">
-          <button type="submit" className="btn-primary" disabled={!valid}>
-            View my trades
+          <button type="submit" className="btn-primary" disabled={!parsed || lookup?.status === "loading"}>
+            {lookup?.status === "loading"
+              ? "Finding your profile…"
+              : parsed?.username
+                ? "Find my profile"
+                : "View my trades"}
           </button>
           <button type="button" className="btn-ghost" onClick={() => onConnect(DEMO_WALLET, false)}>
             Try a demo wallet
@@ -68,8 +161,8 @@ function WalletForm({ onConnect }) {
         </div>
         <div className="rounded-xl bg-ink-50 p-3 text-xs text-ink-600">
           <strong className="text-ink-800">Your keys stay yours.</strong> This page never asks for a
-          password, private key, seed phrase or API secret, can't place trades, and sends your address only
-          to Polymarket's public Data API.
+          password, private key, seed phrase or API secret, can't place trades, and only talks to
+          Polymarket's public APIs.
         </div>
       </form>
     </Section>

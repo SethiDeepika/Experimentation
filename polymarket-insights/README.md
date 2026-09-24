@@ -11,13 +11,14 @@ A front-end over Polymarket's public APIs with three views:
   same analysis on that feed, lists all their open markets in a searchable, sortable table, and —
   if a wallet is connected — shows your open positions that fall under those topics.
   Followed topics are saved in `localStorage`.
-- **My Trades** — enter your Polymarket wallet address to see open positions, value, unrealised
+- **My Trades** — enter your Polymarket username, profile link or wallet address to see open positions, value, unrealised
   P&L, win rate, concentration and recent activity. A demo wallet is available.
 
-## Why only a wallet address?
+## Why only a username / wallet address?
 
 Polymarket positions and trades are public on-chain, so the read-only
-[Data API](https://data-api.polymarket.com) needs nothing but the address. The app never asks for a
+[Data API](https://data-api.polymarket.com) needs nothing but the address. A username is
+resolved to its public wallet address through Gamma's `public-search` profile search. The app never asks for a
 password, private key, seed phrase or CLOB API secret, and warns if something that looks like a
 key is pasted. Seeing *open limit orders* would require CLOB L2 API credentials with request
 signing, which should not be entered into a static web page, so that's deliberately out of scope.
@@ -27,6 +28,7 @@ signing, which should not be entered into a static web page, so that's deliberat
 | Endpoint | Used for |
 |---|---|
 | `gamma-api.polymarket.com/events?active=true&closed=false&order=volume24hr&limit=100&offset=…&tag_slug=…` | trending + per-topic feeds (paged) |
+| `gamma-api.polymarket.com/public-search?q=…&search_profiles=true` | username → wallet address |
 | `data-api.polymarket.com/positions?user=…` | open positions |
 | `data-api.polymarket.com/activity?user=…` | recent trades |
 

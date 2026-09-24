@@ -165,4 +165,21 @@ export async function fetchActivity(address, limit = 50) {
   }));
 }
 
+/** Polymarket profiles matching a username, via the public search endpoint. */
+export async function searchProfiles(query) {
+  const raw = await getJson(GAMMA, "/public-search", {
+    q: query,
+    search_profiles: true,
+    limit_per_type: 10,
+  });
+  return (raw?.profiles || [])
+    .map((p) => ({
+      address: p.proxyWallet || p.proxy_wallet || "",
+      name: p.name || "",
+      pseudonym: p.pseudonym || "",
+      image: p.profileImage || p.profile_image || "",
+    }))
+    .filter((p) => /^0x[a-fA-F0-9]{40}$/.test(p.address));
+}
+
 export const eventUrl = (slug) => `https://polymarket.com/event/${slug}`;
