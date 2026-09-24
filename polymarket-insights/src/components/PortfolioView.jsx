@@ -3,12 +3,14 @@ import { eventUrl, fetchActivity, fetchPositions } from "../lib/api.js";
 import { DEMO_WALLET, demoActivity, demoPositions } from "../lib/demoData.js";
 import { pct, shortAddress, timeAgo, usd } from "../lib/format.js";
 import { portfolioStats } from "../lib/insights.js";
-import { load, save } from "../lib/storage.js";
 import { REFRESH_MS } from "../lib/useLiveEvents.js";
 import { BarList, Empty, Section, Skeleton, StatTile } from "./ui.jsx";
 
+/** Open positions for a wallet (sample positions for the demo wallet). */
+export const loadPositions = (wallet) =>
+  wallet === DEMO_WALLET ? Promise.resolve(demoPositions()) : fetchPositions(wallet);
+
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
-const STORE_KEY = "pm-insights:wallet";
 
 function WalletForm({ onConnect }) {
   const [value, setValue] = useState("");
@@ -74,8 +76,7 @@ function WalletForm({ onConnect }) {
   );
 }
 
-export default function PortfolioView() {
-  const [wallet, setWallet] = useState(() => load(STORE_KEY, null));
+export default function PortfolioView({ wallet, onConnect, onDisconnect }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -106,15 +107,6 @@ export default function PortfolioView() {
     return () => clearInterval(id);
   }, [refresh]);
 
-  const connect = (address, remember) => {
-    save(STORE_KEY, remember ? address : null);
-    setWallet(address);
-  };
-  const disconnect = () => {
-    save(STORE_KEY, null);
-    setWallet(null);
-  };
-
   if (!wallet) {
     return (
       <div className="mx-auto max-w-2xl space-y-5">
@@ -122,7 +114,7 @@ export default function PortfolioView() {
           <h1 className="text-2xl font-extrabold tracking-tight">Your active trades</h1>
           <p className="text-sm text-ink-500">See your open positions, P&amp;L and recent trades.</p>
         </div>
-        <WalletForm onConnect={connect} />
+        <WalletForm onConnect={onConnect} />
       </div>
     );
   }
@@ -148,7 +140,7 @@ export default function PortfolioView() {
           <button className="btn-ghost py-1" onClick={refresh} disabled={loading}>
             {loading ? "Refreshing…" : "Refresh"}
           </button>
-          <button className="btn-ghost py-1" onClick={disconnect}>
+          <button className="btn-ghost py-1" onClick={onDisconnect}>
             Disconnect
           </button>
         </div>
@@ -224,7 +216,7 @@ export default function PortfolioView() {
   );
 }
 
-function PositionsTable({ positions }) {
+export function PositionsTable({ positions }) {
   if (!positions.length) return <Empty>No open positions.</Empty>;
   return (
     <div className="-mx-5 overflow-x-auto">

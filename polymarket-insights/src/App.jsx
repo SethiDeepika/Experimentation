@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import InterestsView from "./components/InterestsView.jsx";
 import PortfolioView from "./components/PortfolioView.jsx";
 import TrendingView from "./components/TrendingView.jsx";
-import { fetchTrendingEvents } from "./lib/api.js";
+import { fetchTrendingPages } from "./lib/api.js";
 import { demoEvents } from "./lib/demoData.js";
 import { load, save } from "./lib/storage.js";
 import useLiveEvents from "./lib/useLiveEvents.js";
@@ -12,6 +12,7 @@ const TABS = [
   { id: "interests", label: "My Interests" },
   { id: "portfolio", label: "My Trades" },
 ];
+const WALLET_KEY = "pm-insights:wallet";
 const tabFromHash = () => {
   const id = window.location.hash.replace("#", "");
   return TABS.some((t) => t.id === id) ? id : "trending";
@@ -20,6 +21,12 @@ const tabFromHash = () => {
 export default function App() {
   const [tab, setTab] = useState(tabFromHash);
   const [interests, setInterestsState] = useState(() => load("pm-insights:interests", []));
+  // Shared by My Trades and My Interests (which shows your positions under followed tags).
+  const [wallet, setWallet] = useState(() => load(WALLET_KEY, null));
+  const connectWallet = (address, remember) => {
+    save(WALLET_KEY, remember ? address : null);
+    setWallet(address);
+  };
 
   useEffect(() => {
     const onHash = () => setTab(tabFromHash());
@@ -33,9 +40,12 @@ export default function App() {
   };
 
   // The trending feed is loaded once here so it keeps polling across tabs and
-  // seeds the interest picker with real tags.
-  const loadTrending = useCallback(() => fetchTrendingEvents({ limit: 60 }), []);
-  const trending = useLiveEvents(loadTrending, demoEvents, [loadTrending]);
+  // seeds the interest picker with real tags. "Load more" adds a page; each
+  // refresh re-fetches every loaded page so the whole list stays live.
+  const [pages, setPages] = useState(1);
+  const loadTrending = useCallback(() => fetchTrendingPages(pages), [pages]);
+  const trending = useLiveEvents(loadTrending, demoEvents, [loadTrending], { keepOnChange: true });
+  const loadMore = () => setPages((n) => n + 1);
 
   return (
     <div className="min-h-screen">
@@ -68,11 +78,16 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6">
-        {tab === "trending" && <TrendingView feed={trending} />}
+        {tab === "trending" && <TrendingView feed={trending} onLoadMore={loadMore} />}
         {tab === "interests" && (
-          <InterestsView interests={interests} setInterests={setInterests} trendingEvents={trending.events} />
+          <InterestsView
+            interests={interests}
+            setInterests={setInterests}
+            trendingEvents={trending.events}
+            wallet={wallet}
+          />
         )}
-        {tab === "portfolio" && <PortfolioView />}
+        {tab === "portfolio" && <PortfolioView wallet={wallet} onConnect={connectWallet} onDisconnect={() => connectWallet(null, false)} />}
       </main>
 
       <footer className="mx-auto max-w-7xl px-4 pb-8 text-xs text-ink-500">

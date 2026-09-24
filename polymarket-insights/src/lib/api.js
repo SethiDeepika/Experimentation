@@ -70,18 +70,55 @@ export function normalizeEvent(e) {
   };
 }
 
-/** Open events ranked by 24h volume, optionally restricted to a tag. */
-export async function fetchTrendingEvents({ tagSlug, limit = 60 } = {}) {
+export const PAGE_SIZE = 100;
+
+// One page of open events ranked by 24h volume. `full` says whether the API
+// returned a whole page (i.e. there may be more after it).
+async function fetchEventPage({ tagSlug, offset = 0 }) {
   const raw = await getJson(GAMMA, "/events", {
     active: true,
     closed: false,
     archived: false,
     order: "volume24hr",
     ascending: false,
-    limit,
+    limit: PAGE_SIZE,
+    offset,
     tag_slug: tagSlug,
   });
-  return (Array.isArray(raw) ? raw : []).map(normalizeEvent).filter((e) => e.markets.length);
+  const list = Array.isArray(raw) ? raw : [];
+  return {
+    events: list.map(normalizeEvent).filter((e) => e.markets.length),
+    full: list.length === PAGE_SIZE,
+  };
+}
+
+// Rankings can shift between page requests, so the same event may appear twice.
+export function dedupeEvents(lists) {
+  const byId = new Map();
+  for (const list of lists) for (const e of list) if (!byId.has(e.id)) byId.set(e.id, e);
+  return [...byId.values()].sort((a, b) => b.volume24hr - a.volume24hr);
+}
+
+/** The first `pages` pages of trending events (all tags), fetched in parallel. */
+export async function fetchTrendingPages(pages) {
+  const results = await Promise.all(
+    Array.from({ length: pages }, (_, i) => fetchEventPage({ offset: i * PAGE_SIZE }))
+  );
+  return {
+    events: dedupeEvents(results.map((r) => r.events)),
+    hasMore: results[results.length - 1].full,
+  };
+}
+
+/** Every open event carrying a tag, page by page, up to `max` events. */
+export async function fetchAllEvents({ tagSlug, max = 1000 }) {
+  const lists = [];
+  for (let offset = 0; offset < max; offset += PAGE_SIZE) {
+    const page = await fetchEventPage({ tagSlug, offset });
+    lists.push(page.events);
+    if (!page.full) break;
+  }
+  return dedupeEvents(lists);
 }
 
 /** A wallet's open positions (public, keyed by address). */
