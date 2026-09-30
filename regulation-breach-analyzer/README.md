@@ -54,6 +54,10 @@ The site won't return results until this is deployed once:
 5. Put that URL (not a secret — safe to share/commit) into `GROQ_PROXY_URL` near the top of `app.js`,
    commit, and push.
 
+**Shared Worker:** the same Worker also serves [Small Talk Survival Kit](../small-talk-kit) on its
+`/small-talk` route, reusing the `GROQ_API_KEY` secret. Requests to any other path behave exactly as
+described above.
+
 **Note:** the Worker does not auto-deploy from GitHub. Any change to `worker/index.js` in this repo
 (e.g. a model name update) must be re-pasted into the Cloudflare dashboard's "Edit code" screen (or
 re-run via `wrangler deploy`) to take effect.

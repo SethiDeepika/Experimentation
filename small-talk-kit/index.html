@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Small Talk Survival Kit</title>
+    <meta
+      name="description"
+      content="A small-talk kit for introverts: openers, follow-ups, graceful exits and an energy plan for any meeting or gathering, plus instant lines for when you're stuck mid-conversation. Powered by Groq."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="aurora" aria-hidden="true">
+      <span class="blob blob-a"></span>
+      <span class="blob blob-b"></span>
+      <span class="blob blob-c"></span>
+    </div>
+
+    <header class="site-header">
+      <div class="wrap">
+        <a class="back-link" href="../">← All projects</a>
+        <span class="eyebrow">🌿 For introverts · Powered by Groq</span>
+        <h1>Small Talk <span class="gradient-text">Survival</span> Kit</h1>
+        <p class="subtitle">
+          You don't need to become an extrovert. You just need a few good lines, a way out,
+          and a plan that fits your energy.
+        </p>
+      </div>
+    </header>
+
+    <div class="wrap tabs-row">
+      <div class="tabs" role="tablist" aria-label="Mode">
+        <button type="button" class="tab" role="tab" id="tab-prep" aria-controls="panel-prep" aria-selected="true">
+          🗓️ Prep for an event
+        </button>
+        <button type="button" class="tab" role="tab" id="tab-rescue" aria-controls="panel-rescue" aria-selected="false">
+          🛟 I'm stuck right now
+        </button>
+      </div>
+    </div>
+
+    <!-- Prep mode -->
+    <main id="panel-prep" class="wrap dashboard" role="tabpanel" aria-labelledby="tab-prep">
+      <aside class="panel input-panel">
+        <span class="field-label" id="event-label">What's the event?</span>
+        <div class="chips" id="event-chips" role="radiogroup" aria-labelledby="event-label"></div>
+        <input
+          id="event-custom"
+          class="text-input"
+          type="text"
+          maxlength="200"
+          placeholder="…or describe it, e.g. my partner's office holiday party"
+          hidden
+        />
+
+        <span class="field-label" id="energy-label">How much social energy do you have?</span>
+        <div class="segmented" id="energy" role="radiogroup" aria-labelledby="energy-label">
+          <button type="button" role="radio" data-energy="low" aria-checked="false">🪫 Low</button>
+          <button type="button" role="radio" data-energy="medium" aria-checked="true">🔋 Medium</button>
+          <button type="button" role="radio" data-energy="high" aria-checked="false">⚡ High</button>
+        </div>
+
+        <label class="field-label" for="people">Who'll be there? <span class="optional">optional</span></label>
+        <input
+          id="people"
+          class="text-input"
+          type="text"
+          maxlength="300"
+          placeholder="e.g. mostly strangers, my new manager, a few engineers"
+        />
+
+        <label class="field-label" for="context">Anything else? <span class="optional">optional</span></label>
+        <textarea
+          id="context"
+          rows="3"
+          maxlength="600"
+          placeholder="e.g. I'm new to the team, I hate talking about myself, I want to meet the design lead"
+        ></textarea>
+
+        <button type="button" id="prep-btn" class="primary-btn">Build my kit</button>
+
+        <div class="status-row">
+          <span id="prep-spinner" class="spinner" hidden></span>
+          <p id="prep-status" class="status-line" aria-live="polite"></p>
+        </div>
+
+        <div class="sidebar-note">
+          <h2>How this works</h2>
+          <p>
+            Your answers go through a small serverless proxy to
+            <a href="https://groq.com" target="_blank" rel="noreferrer">Groq</a>, so they leave your
+            browser. Don't include names or private details. If the AI can't be reached, you get a
+            ready-made kit from the built-in library.
+          </p>
+        </div>
+      </aside>
+
+      <section class="results-area">
+        <div id="prep-empty" class="empty-state">
+          <span class="empty-icon" aria-hidden="true">🌿</span>
+          <h2>Your kit will appear here</h2>
+          <p>Pick an event and your energy level, then click <strong>Build my kit</strong>.</p>
+        </div>
+        <div id="prep-results" class="results-panel" hidden></div>
+      </section>
+    </main>
+
+    <!-- Rescue mode -->
+    <main id="panel-rescue" class="wrap rescue-layout" role="tabpanel" aria-labelledby="tab-rescue" hidden>
+      <section class="panel">
+        <h2 class="panel-title">What's happening?</h2>
+        <p class="panel-hint">Tap the moment you're in. You'll get lines to say straight away.</p>
+        <div class="situation-grid" id="situation-grid"></div>
+
+        <details class="custom-rescue">
+          <summary>Something else? Describe it</summary>
+          <textarea
+            id="rescue-text"
+            rows="3"
+            maxlength="600"
+            placeholder="e.g. They just said they're a vegan chef and I have no follow-up"
+          ></textarea>
+          <button type="button" id="rescue-btn" class="primary-btn">Get lines</button>
+        </details>
+
+        <div class="status-row">
+          <span id="rescue-spinner" class="spinner" hidden></span>
+          <p id="rescue-status" class="status-line" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="rescue-results" class="panel rescue-card" hidden aria-live="polite"></section>
+    </main>
+
+    <footer class="site-footer">
+      <p>A portfolio project by Deepika Sethi · AI-generated suggestions, so use your own judgement.</p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
