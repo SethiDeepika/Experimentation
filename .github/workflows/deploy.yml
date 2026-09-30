@@ -49,7 +49,7 @@ jobs:
           # Landing page (resume + project links) serves as the site root
           cp index.html style.css _site/
           cp -r assets _site/assets
-          # Regulation Breach Analyzer and Meeting Prep Generator each live at
+          # Each project lives at
           # their own subpath of the same Pages site
           mkdir -p _site/regulation-breach-analyzer
           cp -r regulation-breach-analyzer/. _site/regulation-breach-analyzer/
@@ -57,6 +57,8 @@ jobs:
           cp -r meeting-prep-generator/dist/. _site/meeting-prep-generator/
           mkdir -p _site/polymarket-insights
           cp -r polymarket-insights/dist/. _site/polymarket-insights/
+          mkdir -p _site/small-talk-kit
+          cp -r small-talk-kit/. _site/small-talk-kit/
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

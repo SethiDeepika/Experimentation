@@ -16,6 +16,10 @@ Personal site and a collection of small projects and demos.
   a personal feed for followed topics, and a Polymarket US view of your positions and open orders
   (React + Vite + Tailwind). Live at
   https://sethideepika.github.io/Experimentation/polymarket-insights/.
+- [`small-talk-kit/`](./small-talk-kit) — Small Talk Survival Kit: openers, follow-ups, graceful
+  exits and an energy plan for any meeting or gathering, plus instant "I'm stuck" lines, aimed at
+  introverts. Powered by Groq via the Regulation Breach Analyzer's Worker. Live at
+  https://sethideepika.github.io/Experimentation/small-talk-kit/.
 
 ## Home page
 
@@ -27,7 +31,8 @@ _site/
 ├── index.html, style.css, assets/     ← this home page (site root)
 ├── regulation-breach-analyzer/        ← copied as-is (no build step)
 ├── meeting-prep-generator/            ← built output (npm run build)
-└── polymarket-insights/               ← built output (npm run build)
+├── polymarket-insights/               ← built output (npm run build)
+└── small-talk-kit/                    ← copied as-is (no build step)
 ```
 
 `assets/DeepikaSethi_Resume.pdf` is a public-facing copy of the résumé with phone number and
