@@ -16,6 +16,9 @@ Personal site and a collection of small projects and demos.
   a personal feed for followed topics, and a Polymarket US view of your positions and open orders
   (React + Vite + Tailwind). Live at
   https://sethideepika.github.io/Experimentation/polymarket-insights/.
+- [`hackathon-hub/`](./hackathon-hub) — hackathon event pages, team project submissions (editable
+  by team name + passcode) and rubric-based judging with a results leaderboard (Next.js, deployed
+  separately on Vercel's free plan; see its README).
 
 ## Home page
 
